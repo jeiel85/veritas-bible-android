@@ -107,6 +107,7 @@ Play 업로드는 GitHub Actions `Play release` 워크플로(`.github/workflows/
 - 순서: 릴리즈 메타데이터 검증 → 단위 시험 → `bundleRelease` → 업로드 인증서 SHA-256 확인 → 트랙 상태 조회 → 비공개 테스트(`alpha`)에 AAB 업로드 → 내부 테스트(`internal`)에 같은 versionCode 지정 → 트랙 상태 조회. 프로덕션에는 올리지 않습니다.
 - 출시 노트: `play_store/release_notes/vX.Y.Z.txt`의 `<ko-KR>`·`<en-US>` 블록(언어별 500자 이하).
 - `dry_run`: 시험·빌드·서명 확인·트랙 조회까지만 하고 Play에 올리지 않습니다.
+- `resume`: 트랙마다 따로 커밋하므로 alpha만 들어가고 internal에서 멈출 수 있습니다. 원인을 고친 뒤 같은 version으로 `resume`을 켜고 다시 돌리면, 이미 올라간 번들을 다시 올리지 않고 두 트랙에 지정만 합니다.
 - 환경 Secrets: `ANDROID_RELEASE_KEYSTORE_BASE64`, `ANDROID_RELEASE_KEYSTORE_PASSWORD`, `ANDROID_RELEASE_KEY_ALIAS`, `ANDROID_RELEASE_KEY_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`(서비스 계정 `play-publisher@ai-usage-play-publisher.iam.gserviceaccount.com`).
 - 업로드 키 인증서 SHA-256: `11:36:E1:25:43:F3:36:0A:96:7E:B9:2E:D3:CC:6F:C8:EF:02:9F:35:A7:F2:C4:F3:9E:0C:32:11:81:25:0B:C6`. 다른 키로 서명된 번들은 올리기 전에 멈춥니다.
 - 업로드 스크립트 `tools/play-publish.ps1`은 전역 `play-publish` 스킬 스크립트의 복사본입니다. 고칠 때는 원본과 함께 맞춥니다.
