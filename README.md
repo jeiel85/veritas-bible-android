@@ -86,20 +86,37 @@ play_store/
 .\scripts\validate_release_version.ps1 vX.Y.Z
 ```
 
-5. Play Console 업로드 파일을 바탕화면 `Build\` 폴더로 내보냅니다. 파일명은 `veritas-bible-vX.Y.Z-vc<versionCode>.{aab,txt}` 컨벤션을 따릅니다.
-
-```powershell
-.\scripts\export_play_console_assets.ps1 vX.Y.Z
-```
-
-6. 커밋 후 태그를 푸시합니다.
+5. 커밋 후 태그를 푸시합니다.
 
 ```powershell
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin main vX.Y.Z
 ```
 
-태그가 푸시되면 GitHub Actions가 APK/AAB를 빌드하고, `docs/releases/vX.Y.Z.md`를 본문으로 GitHub Release를 생성합니다.
+태그가 푸시되면 GitHub Actions 워크플로 두 개가 함께 돕니다.
+
+- `android-release.yml`: 시험 후 release APK를 빌드하고 `docs/releases/vX.Y.Z.md`를 본문으로 GitHub Release를 만듭니다(AAB는 올리지 않습니다).
+- `play-release.yml`: 아래 "Play 배포"대로 Play용 AAB를 빌드해 Play 트랙에 올립니다. 환경 `play` 승인이 필요합니다.
+
+## Play 배포
+
+Play 업로드는 GitHub Actions `Play release` 워크플로(`.github/workflows/play-release.yml`)가 합니다. **Play Console 화면에서 AAB를 손으로 올리지 않습니다**(같은 versionCode는 두 번 올릴 수 없고, 트랙이 엇갈립니다).
+
+- 실행: 태그 `vX.Y.Z` 푸시 시 자동, 또는 Actions 화면의 `Run workflow`(version `x.y.z`, `dry_run`). 손으로 돌리면 그 태그의 소스를 빌드합니다.
+- 승인: GitHub 환경 `play`(승인자 jeiel85, `main` 브랜치·`v*` 태그만)에서 `Review deployments`로 승인해야 시작합니다.
+- 순서: 릴리즈 메타데이터 검증 → 단위 시험 → `bundleRelease` → 업로드 인증서 SHA-256 확인 → 트랙 상태 조회 → 비공개 테스트(`alpha`)에 AAB 업로드 → 내부 테스트(`internal`)에 같은 versionCode 지정 → 트랙 상태 조회. 프로덕션에는 올리지 않습니다.
+- 출시 노트: `play_store/release_notes/vX.Y.Z.txt`의 `<ko-KR>`·`<en-US>` 블록(언어별 500자 이하).
+- `dry_run`: 시험·빌드·서명 확인·트랙 조회까지만 하고 Play에 올리지 않습니다.
+- `resume`: 트랙마다 따로 커밋하므로 alpha만 들어가고 internal에서 멈출 수 있습니다. 원인을 고친 뒤 같은 version으로 `resume`을 켜고 다시 돌리면, 이미 올라간 번들을 다시 올리지 않고 두 트랙에 지정만 합니다.
+- 환경 Secrets: `ANDROID_RELEASE_KEYSTORE_BASE64`, `ANDROID_RELEASE_KEYSTORE_PASSWORD`, `ANDROID_RELEASE_KEY_ALIAS`, `ANDROID_RELEASE_KEY_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`(서비스 계정 `play-publisher@ai-usage-play-publisher.iam.gserviceaccount.com`).
+- 업로드 키 인증서 SHA-256: `11:36:E1:25:43:F3:36:0A:96:7E:B9:2E:D3:CC:6F:C8:EF:02:9F:35:A7:F2:C4:F3:9E:0C:32:11:81:25:0B:C6`. 다른 키로 서명된 번들은 올리기 전에 멈춥니다.
+- 업로드 스크립트 `tools/play-publish.ps1`은 전역 `play-publish` 스킬 스크립트의 복사본입니다. 고칠 때는 원본과 함께 맞춥니다.
+
+CI를 쓸 수 없을 때만 아래 명령으로 AAB와 노트를 바탕화면 `Build\`에 내보내(`veritas-bible-vX.Y.Z-vc<versionCode>.{aab,txt}`) Play Console에 손으로 올립니다. 그 경우 그 버전의 `Play release` 실행은 승인하지 말고 거부합니다.
+
+```powershell
+.\scripts\export_play_console_assets.ps1 vX.Y.Z
+```
 
 ## 릴리즈 서명
 

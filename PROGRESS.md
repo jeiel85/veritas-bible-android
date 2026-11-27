@@ -1,5 +1,13 @@
 # Veritas Bible 진행 기록
 
+## 2026-11-27 - Play 업로드 CI 워크플로 추가
+
+- GitHub Issue #60 `Play 업로드 CI 워크플로 추가` 생성.
+- `.github/workflows/play-release.yml` 추가: 태그 `v*` push·수동 실행(version, dry_run) → 메타데이터 검증 → 단위 시험 → `bundleRelease` → 업로드 인증서 SHA-256 확인 → alpha 업로드 → internal 같은 versionCode 지정 → 트랙 조회.
+- `tools/play-publish.ps1`: 전역 `play-publish` 스킬 스크립트 복사본(리눅스 keytool 경로 대응).
+- GitHub 환경 `play`(승인자 jeiel85, `main`·`v*`만)와 환경 Secrets 5개 등록. 업로드 키는 `.keystore/veritas-bible-upload.jks` 하나(GitHub v1.8.3 APK 서명과 같은 인증서)임을 확인.
+- `gradlew` 실행 권한(100755) 커밋, README에 "Play 배포" 절 추가(수동 Play Console 업로드는 CI를 못 쓸 때만).
+
 ## 2026-06-15 - v1.8.3 컴파일 검증 및 새 버전 릴리즈 준비
 
 - GitHub Issue #58 `v1.8.3 컴파일 검증 및 새 버전 릴리즈 준비` 생성.
